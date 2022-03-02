@@ -28,7 +28,7 @@ resource aws_lambda_permission allow_cloudwatch {
     action        = "lambda:InvokeFunction"
     function_name = module.lambda.lambda_function_name
     principal     = "logs.${data.aws_region.current.name}.amazonaws.com"
-    source_arn    = aws_cloudwatch_log_group.ecs_group.arn
+    source_arn    = "${aws_cloudwatch_log_group.ecs_group.arn}:*"
 }
 
 resource aws_cloudwatch_log_subscription_filter lambda_logfilter {
