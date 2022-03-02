@@ -128,3 +128,12 @@ variable environment {
   description = "List of Env Vars"
   default     = []
 }
+
+variable secrets {
+  type = list(object({
+    name      = string
+    valueFrom = string
+  }))
+  description = "List of Secrets"
+  default     = []
+}

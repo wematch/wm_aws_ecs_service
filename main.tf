@@ -62,6 +62,7 @@ module "main_container_definition" {
   container_cpu                 = var.container_cpu
   container_memory              = var.container_memory
   container_memory_reservation  = var.container_memory
+  secrets                       = var.secrets
   
   port_mappings = [
     {
