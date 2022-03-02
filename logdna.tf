@@ -33,7 +33,7 @@ resource aws_lambda_permission allow_cloudwatch {
 
 resource aws_cloudwatch_log_subscription_filter lambda_logfilter {
     name            = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-Filter"
-    log_group_name  = module.fargate_service.cloudwatch_log_group_name
+    log_group_name  = "${var.name_prefix}/ecs/${var.cluster_name}/${var.service_name}/"
     filter_pattern  = ""
     destination_arn = module.lambda.lambda_function_arn
     distribution    = "ByLogStream"
