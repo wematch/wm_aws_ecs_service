@@ -131,8 +131,8 @@ variable environment {
 
 variable secrets {
   type = list(object({
-    name  = string
-    value = string
+    name      = string
+    valueFrom = string
   }))
   description = "List of Secrets"
   default     = []
