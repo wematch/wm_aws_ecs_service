@@ -15,7 +15,7 @@ module lambda {
     memory_size             = 256
     maximum_retry_attempts  = 0
     create_package          = false
-    local_existing_package  = "lambda.zip"
+    local_existing_package  = "${path.module}/lambda.zip"
     tags                    = var.standard_tags
 
     environment_variables = {
