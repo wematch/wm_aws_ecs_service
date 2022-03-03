@@ -7,7 +7,7 @@ module lambda {
 
     source                  = "terraform-aws-modules/lambda/aws"
     version                 = "2.34.1"
-    function_name           = "${var.name_prefix}-${var.wm_instance}-${var.service_name}"
+    function_name           = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-lambda"
     description             = "Push logs CloudWatch -> LogDNA - ${var.service_name} at ${var.wm_instance}"
     handler                 = "index.handler"
     runtime                 = "nodejs14.x"
