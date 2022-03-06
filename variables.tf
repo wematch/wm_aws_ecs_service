@@ -11,16 +11,12 @@ variable security_groups {}
 variable aws_lb_certificate_arn {}
 variable capacity_provider_name {}
 
-variable aws_lb_out_port {
-  type    = number
-  default = null
-}
 variable image_version {
   type    = string
   default = "latest"
 }
 variable wm_instance {
-  type = string
+  type    = string
   default = "fargate"
 }
 variable standard_tags {
@@ -50,6 +46,10 @@ variable task_memory {
 }
 variable service_port {
   type    = number
+}
+variable external_port {
+  type    = number
+  default = 443
 }
 variable entrypoint {
   type    = list(string)
@@ -89,7 +89,7 @@ variable health_check_grace_period_seconds {
 }
 variable additional_containers {
   description = "Additional containers definition"
-  default = []
+  default     = []
 }
 # variable s3_log_bucket {
 #   type = string
@@ -110,10 +110,10 @@ variable mount_points {
 
 variable volumes {
   type = list(object({
-    name      = string
+    name = string
     efs_volume_configuration = list(object({
-      file_system_id          = string
-      root_directory          = string
+      file_system_id = string
+      root_directory = string
     }))
   }))
   description = "Task volume definitions as list of configuration objects"
@@ -125,7 +125,7 @@ variable environment {
     name  = any
     value = any
   }))
-  description = "List of Env Vars"
+  description = "List of Environment Variables"
   default     = []
 }
 
