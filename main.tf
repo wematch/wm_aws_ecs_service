@@ -55,7 +55,7 @@ resource aws_ecs_service main {
 # ---------------------------------------------------
 #     Container - Main
 # ---------------------------------------------------
-module "main_container_definition {
+module main_container_definition {
   source  = "cloudposse/ecs-container-definition/aws"
   version = "0.58.1"
 
