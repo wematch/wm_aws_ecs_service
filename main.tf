@@ -39,7 +39,6 @@ resource aws_ecs_service main {
   network_configuration {
     security_groups   = var.security_groups
     subnets           = var.subnets
-    assign_public_ip  = var.public
   }
 
   load_balancer {
