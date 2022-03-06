@@ -1,7 +1,7 @@
 # ---------------------------------------------------
 #    CloudWatch Log Groups
 # ---------------------------------------------------
-resource "aws_cloudwatch_log_group" "ecs_group" {
+resource aws_cloudwatch_log_group ecs_group {
   name = "${var.name_prefix}/ecs/${var.cluster_name}/${var.service_name}/"
   tags = var.standard_tags
 }
@@ -10,7 +10,7 @@ resource "aws_cloudwatch_log_group" "ecs_group" {
 # ---------------------------------------------------
 #    ECS Service
 # ---------------------------------------------------
-resource "aws_ecs_service" "main" {
+resource aws_ecs_service main {
   name                                = "${var.name_prefix}-${var.wm_instance}-${var.service_name}"
   cluster                             = var.cluster_name
   propagate_tags                      = "SERVICE"
@@ -39,21 +39,22 @@ resource "aws_ecs_service" "main" {
   network_configuration {
     security_groups   = var.security_groups
     subnets           = var.subnets
-    assign_public_ip  = var.public
   }
 
   load_balancer {
-    target_group_arn  = aws_lb_target_group.aws_ecs_service_target_group.arn
+    target_group_arn  = aws_lb_target_group.main.arn
     container_name    = var.service_name
     container_port    = var.service_port
   }
+
+  depends_on = [data.aws_lb.passed_on]
 }
 
 
 # ---------------------------------------------------
 #     Container - Main
 # ---------------------------------------------------
-module "main_container_definition" {
+module main_container_definition {
   source  = "cloudposse/ecs-container-definition/aws"
   version = "0.58.1"
 
@@ -72,7 +73,7 @@ module "main_container_definition" {
     }
   ]
 
-  environment = setunion(var.environment,  
+  environment = setunion(var.environment,
   [
     {
       name  = "PORT"
@@ -99,7 +100,7 @@ module "main_container_definition" {
 # ---------------------------------------------------
 #     Task Definition
 # ---------------------------------------------------
-resource "aws_ecs_task_definition" "main" {
+resource aws_ecs_task_definition main {
   family                    = "${var.name_prefix}-${var.wm_instance}-${var.service_name}"
   requires_compatibilities  = ["EC2"]
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
@@ -107,21 +108,21 @@ resource "aws_ecs_task_definition" "main" {
   memory                    = var.task_memory > var.container_memory ? var.task_memory : var.container_memory
   network_mode              = "awsvpc"
   tags                      = merge(var.standard_tags, tomap({ Name = var.service_name }))
-  container_definitions     = module.main_container_definition.json_map_encoded_list # "[${module.main_container_definition.json_map_encoded}, ${module.logs_container_definition.json_map_encoded}]"
+  container_definitions     = module.main_container_definition.json_map_encoded_list
 }
 
 
 # ---------------------------------------------------
 #    CloudWatch Alarms for ASG
 # ---------------------------------------------------
-resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
+resource aws_cloudwatch_metric_alarm service_cpu_high {
   alarm_name          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = 2
   threshold           = var.container_cpu_high_threshold
   datapoints_to_alarm = 1
   statistic           = "Average"
-  period              = "60"
+  period              = 60
 
   metric_name = "CPUUtilization"
   namespace   = "AWS/ECS"
@@ -135,14 +136,14 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
   ]
 }
 
-resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
+resource aws_cloudwatch_metric_alarm service_cpu_low {
   alarm_name          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-low-cpu"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = 2
   threshold           = var.container_cpu_low_threshold
   datapoints_to_alarm = 1
   statistic           = "Average"
-  period              = "60"
+  period              = 60
 
   metric_name = "CPUUtilization"
   namespace   = "AWS/ECS"
@@ -160,12 +161,12 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
 # ---------------------------------------------------
 #    Autoscaling
 # ---------------------------------------------------
-resource "time_sleep" "wait" {
+resource time_sleep wait {
   depends_on      = [aws_ecs_service.main]
   create_duration = "30s"
 }
 
-resource "aws_appautoscaling_target" "autoscaling_target" {
+resource aws_appautoscaling_target autoscaling_target {
   min_capacity        = var.min_capacity
   max_capacity        = var.max_capacity
   resource_id         = "service/${var.cluster_name}/${var.name_prefix}-${var.wm_instance}-${var.service_name}"
@@ -175,7 +176,7 @@ resource "aws_appautoscaling_target" "autoscaling_target" {
   depends_on          = [time_sleep.wait]
 }
 
-resource "aws_appautoscaling_policy" "scale_up" {
+resource aws_appautoscaling_policy scale_up {
   name               = "scale-up-${var.name_prefix}-${var.wm_instance}-${var.service_name}"
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
@@ -194,7 +195,7 @@ resource "aws_appautoscaling_policy" "scale_up" {
   }
 }
 
-resource "aws_appautoscaling_policy" "scale_down" {
+resource aws_appautoscaling_policy scale_down {
   name               = "scale-down-${var.name_prefix}-${var.wm_instance}-${var.service_name}"
   policy_type        = "StepScaling"
   resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
@@ -215,9 +216,9 @@ resource "aws_appautoscaling_policy" "scale_down" {
 
 
 # ---------------------------------------------------
-#    Internal Load Balancer - If Private Subnet
+#    Internal Load Balancer
 # ---------------------------------------------------
-resource "aws_lb_target_group" "aws_ecs_service_target_group" {
+resource aws_lb_target_group main {
   name                          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-tg"
   port                          = var.service_port
   protocol                      = "HTTP"
@@ -237,28 +238,31 @@ resource "aws_lb_target_group" "aws_ecs_service_target_group" {
 }
 
 
-resource "aws_lb_listener" "aws_ecs_service_aws_lb_listener" {
+resource aws_lb_listener main {
   load_balancer_arn = data.aws_lb.passed_on.arn
-  port              = var.aws_lb_out_port != null ? var.aws_lb_out_port : var.service_port
+  port              = var.public == true ? var.external_port : var.service_port
+  # BEFORE: 
+  # port              = var.aws_lb_out_port != null ? var.aws_lb_out_port : var.service_port
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
   certificate_arn   = var.aws_lb_certificate_arn
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.aws_ecs_service_target_group.arn
+    target_group_arn = aws_lb_target_group.main.arn
   }
 }
 
-resource "aws_lb_listener_rule" "block_header_rule" {
-  listener_arn = aws_lb_listener.aws_ecs_service_aws_lb_listener.arn
-  priority = 100
+resource aws_lb_listener_rule block_header_rule {
+  count         =  var.public == true ? 0 : 1
+  listener_arn  = aws_lb_listener.main.arn
+  priority      = 100
 
   condition {
-      http_header {
-        http_header_name = "X-Forwarded-Host"
-        values           = ["*"]
-      }
+    http_header {
+      http_header_name = "X-Forwarded-Host"
+      values           = ["*"]
+    }
   }
 
   action {
