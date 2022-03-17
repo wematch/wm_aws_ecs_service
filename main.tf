@@ -241,8 +241,6 @@ resource aws_lb_target_group main {
 resource aws_lb_listener main {
   load_balancer_arn = data.aws_lb.passed_on.arn
   port              = var.public == true ? var.external_port : var.service_port
-  # BEFORE: 
-  # port              = var.aws_lb_out_port != null ? var.aws_lb_out_port : var.service_port
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-Ext-2018-06"
   certificate_arn   = var.aws_lb_certificate_arn
