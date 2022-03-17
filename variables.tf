@@ -46,6 +46,7 @@ variable task_memory {
 }
 variable service_port {
   type    = number
+  default = 80
 }
 variable external_port {
   type    = number
