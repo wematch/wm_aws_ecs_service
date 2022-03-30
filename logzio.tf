@@ -5,17 +5,14 @@ resource aws_iam_role iam_lambda_cw_to_logzio {
     name = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-logzio-role"
     assume_role_policy = jsonencode({
         Version = "2012-10-17"
-        Statement = 
-        [
-            {
-                Action = "sts:AssumeRole"
-                Effect = "Allow"
-                Sid    = ""
-                Principal = {
-                    Service = "lambda.amazonaws.com"
-                }
+        Statement = [{
+            Action = "sts:AssumeRole"
+            Effect = "Allow"
+            Sid    = ""
+            Principal = {
+                Service = "lambda.amazonaws.com"
             }
-        ]
+        }]
     })
 }
 
