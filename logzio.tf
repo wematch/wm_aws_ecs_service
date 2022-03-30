@@ -63,7 +63,7 @@ resource aws_cloudwatch_log_group log_group_cw_to_logzio {
     name = "/aws/lambda/${aws_lambda_function.lambda_cloudwatch_to_logzio.function_name}"
 }
 
-resource aws_lambda_permission allow_cloudwatch {
+resource aws_lambda_permission logzio_allow_cloudwatch {
     statement_id  = "AllowExecutionFromCloudWatch"
     action        = "lambda:InvokeFunction"
     function_name = aws_lambda_function.lambda_cloudwatch_to_logzio.function_name
