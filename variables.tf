@@ -10,6 +10,7 @@ variable ecr_account_id {}
 variable security_groups {}
 variable aws_lb_certificate_arn {}
 variable capacity_provider_name {}
+variable datadog_forwarder_arn {}
 
 variable image_version {
   type    = string
@@ -92,9 +93,6 @@ variable additional_containers {
   description = "Additional containers definition"
   default     = []
 }
-# variable s3_log_bucket {
-#   type = string
-# }
 variable public {
   default = false
 }
