@@ -53,8 +53,9 @@ resource aws_lambda_function lambda_cloudwatch_to_logzio {
     environment {
         variables = {
             # Required variables:
-            TOKEN = "opXOPsSQzptlpHXAsRcGHaBThyTULuqO" # Your Logz.io shipping token
-            LISTENER_URL = "https://listener.logz.io:8071" # Your Logz.io listener host (for example, listener.logz.io)
+            TOKEN           = "opXOPsSQzptlpHXAsRcGHaBThyTULuqO" # Your Logz.io shipping token
+            LISTENER_URL    = "https://listener.logz.io:8071" # Your Logz.io listener host (for example, listener.logz.io)
+            ENRICH          = "service_name=${var.service_name}, image_version=${var.image_version}, cluster=${var.wm_instance}"
         }
     }
 }
