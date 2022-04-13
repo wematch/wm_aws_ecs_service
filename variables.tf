@@ -9,6 +9,7 @@ variable ecr_account_id {}
 variable security_groups {}
 variable aws_lb_certificate_arn {}
 variable capacity_provider_name {}
+variable logdna_lambda_logs_arn {}
 
 variable image_version {
   type    = string
