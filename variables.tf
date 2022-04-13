@@ -1,7 +1,6 @@
 variable vpc_id {}
 variable subnets {}
 variable image_name {}
-variable logdna_key {}
 variable name_prefix {}
 variable domain_name {}
 variable aws_lb_arn {}
@@ -10,6 +9,7 @@ variable ecr_account_id {}
 variable security_groups {}
 variable aws_lb_certificate_arn {}
 variable capacity_provider_name {}
+variable logdna_lambda_logs_arn {}
 
 variable image_version {
   type    = string
