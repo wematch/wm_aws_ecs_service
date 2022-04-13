@@ -113,111 +113,13 @@ resource aws_ecs_task_definition main {
 
 
 # ---------------------------------------------------
-#    CloudWatch Alarms for ASG
-# ---------------------------------------------------
-resource aws_cloudwatch_metric_alarm service_cpu_high {
-  alarm_name          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-high-cpu"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 2
-  threshold           = var.container_cpu_high_threshold
-  datapoints_to_alarm = 1
-  statistic           = "Average"
-  period              = 60
-
-  metric_name = "CPUUtilization"
-  namespace   = "AWS/ECS"
-  dimensions = {
-    ClusterName = var.cluster_name
-    ServiceName = aws_ecs_service.main.name
-  }
-
-  alarm_actions = [
-    aws_appautoscaling_policy.scale_up.arn
-  ]
-}
-
-resource aws_cloudwatch_metric_alarm service_cpu_low {
-  alarm_name          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-low-cpu"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 2
-  threshold           = var.container_cpu_low_threshold
-  datapoints_to_alarm = 1
-  statistic           = "Average"
-  period              = 60
-
-  metric_name = "CPUUtilization"
-  namespace   = "AWS/ECS"
-  dimensions = {
-    ClusterName = var.cluster_name
-    ServiceName = aws_ecs_service.main.name
-  }
-
-  alarm_actions = [
-    aws_appautoscaling_policy.scale_down.arn
-  ]
-}
-
-
-# ---------------------------------------------------
-#    Autoscaling
+#    Internal Load Balancer
 # ---------------------------------------------------
 resource time_sleep wait {
   depends_on      = [aws_ecs_service.main]
   create_duration = "30s"
 }
 
-resource aws_appautoscaling_target autoscaling_target {
-  min_capacity        = var.min_capacity
-  max_capacity        = var.max_capacity
-  resource_id         = "service/${var.cluster_name}/${var.name_prefix}-${var.wm_instance}-${var.service_name}"
-  role_arn            = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService"
-  scalable_dimension  = "ecs:service:DesiredCount"
-  service_namespace   = "ecs"
-  depends_on          = [time_sleep.wait]
-}
-
-resource aws_appautoscaling_policy scale_up {
-  name               = "scale-up-${var.name_prefix}-${var.wm_instance}-${var.service_name}"
-  policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-
-  step_scaling_policy_configuration {
-    adjustment_type         = "ChangeInCapacity"
-    cooldown                = 60
-    metric_aggregation_type = "Maximum"
-
-    step_adjustment {
-      metric_interval_upper_bound = 0
-      scaling_adjustment          = 1
-    }
-  }
-}
-
-resource aws_appautoscaling_policy scale_down {
-  name               = "scale-down-${var.name_prefix}-${var.wm_instance}-${var.service_name}"
-  policy_type        = "StepScaling"
-  resource_id        = aws_appautoscaling_target.autoscaling_target.resource_id
-  scalable_dimension = aws_appautoscaling_target.autoscaling_target.scalable_dimension
-  service_namespace  = aws_appautoscaling_target.autoscaling_target.service_namespace
-
-  step_scaling_policy_configuration {
-    adjustment_type         = "ChangeInCapacity"
-    cooldown                = 60
-    metric_aggregation_type = "Maximum"
-
-    step_adjustment {
-      metric_interval_lower_bound = 0
-      scaling_adjustment          = -1
-    }
-  }
-}
-
-
-# ---------------------------------------------------
-#    Internal Load Balancer
-# ---------------------------------------------------
 resource aws_lb_target_group main {
   name                          = "${var.name_prefix}-${var.wm_instance}-${var.service_name}-tg"
   port                          = var.service_port
@@ -236,7 +138,6 @@ resource aws_lb_target_group main {
     port                = var.service_port
   }
 }
-
 
 resource aws_lb_listener main {
   load_balancer_arn = data.aws_lb.passed_on.arn
